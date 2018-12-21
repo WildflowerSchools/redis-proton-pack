@@ -1,0 +1,38 @@
+version: '3.6'
+services:
+
+  redis:
+    image: redis:5.0.2
+    restart: always
+
+  proton-pack-service:
+    build:
+      context: ./build
+      dockerfile: local/Dockerfile
+    depends_on:
+      - redis
+    environment:
+      ENVIRONMENT: local
+      PROTON_PACK_REDIS_HOST: redis
+    ports:
+      - 5000:5000
+    command: "scripts/setup-and-startup-service.sh"
+    volumes:
+      - type: bind
+        source: ./
+        target: /app
+
+  proton-pack-worker:
+    build:
+      context: ./build
+      dockerfile: local/Dockerfile
+    depends_on:
+      - redis
+    environment:
+      ENVIRONMENT: local
+      PROTON_PACK_REDIS_HOST: redis
+    command: "scripts/setup-and-startup-worker.sh"
+    volumes:
+      - type: bind
+        source: ./
+        target: /app

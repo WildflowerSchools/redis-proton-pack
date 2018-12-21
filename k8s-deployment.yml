@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proton-pack
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: proton-pack.apparatus.wildflowertesting.org
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    name: http
+    targetPort: 4000
+  selector:
+    app: proton-pack-api
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: honeycomb
+spec:
+  template:
+    metadata:
+      labels:
+        app: proton-pack-api
+    spec:
+      containers:
+      - image: "wildflowerschools/protonpack_api:v2018-12-24-15-56-07"
+        name: proton-pack-api
+        env:
+          - name: ENV
+            value: "test"
+        ports:
+        - containerPort: 5000
+          name: http
