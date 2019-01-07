@@ -10,7 +10,7 @@ COPY ./protonpack /app/protonpack
 
 COPY ./requirements.txt /app/requirements.txt
 
-RUN pip install requirements.txt
+RUN pip install -r requirements.txt
 
 RUN pip install -e .
 
