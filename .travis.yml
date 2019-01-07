@@ -1,0 +1,24 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+
+sudo: required
+dist: trusty
+
+services:
+- redis-server
+
+install:
+- pip install -r requirements-test.txt
+
+script:
+- sudo /etc/init.d/redis-server stop
+- make lint
+- make test
+
+# deploy:
+#   provider: pypi
+#   user: "Your username"
+#   password: "Your password"
