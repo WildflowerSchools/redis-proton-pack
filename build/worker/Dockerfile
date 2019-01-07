@@ -9,6 +9,9 @@ WORKDIR /app
 COPY ./protonpack /app/protonpack
 
 COPY ./requirements.txt /app/requirements.txt
+COPY ./VERSION /app/VERSION
+COPY ./MANIFEST.in /app/MANIFEST.in
+COPY ./setup.py /app/setup.py
 
 RUN pip install -r requirements.txt
 
