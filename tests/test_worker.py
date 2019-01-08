@@ -12,7 +12,6 @@ from protonpack.worker import GhostBuster
 from .test_utils import RedisRunnerContext
 
 
-
 @httpretty.activate
 def test_workers_unite():
     httpretty.register_uri(
