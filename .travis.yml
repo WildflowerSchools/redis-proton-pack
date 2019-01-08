@@ -1,19 +1,21 @@
 language: python
 
-python:
-  - "3.6"
-  - "3.7"
-
+matrix:
+  include:
+  - python: "3.7"
+    env: GIT_TAG=v$(<VERSION)-py3.7
+  - python: "3.6"
+    env: GIT_TAG=v$(<VERSION)-py3.6
 
 branches:
-  only:
-    - master
+  exclude:
+    # skip version tagged builds
+    - /^v\d+.*$/
 
 sudo: yes
 dist: xenial
 
 env:
-  - GIT_TAG="v$(<VERSION)-py$TRAVIS_PYTHON_VERSION"
   global:
     # GIT_TOKEN 
     - secure: hT1gvAmx2Zk+48Hktgk9JQVYyXb3/EwVjr9vajKxooGhC/1MIugRm5eAn/Akog35ZFoWAwdkcZv/k2diGbjmm2g4LRYiVGSlaiv9/FKcnZV6mds49S/1I8dBuRxlFhBbtExTftVQiQDwcLKSR0Ua3Dk3cn1xsl5HrEqppYZCx6y/2gREtUbC3v92QFcQLkfeqwNfew7YflGWRwR05rAdlK5sHplaUlkcHLzeBBtRvQ9VPEI+4tOY/lPnXTqqkj+EBjdK3F/XPKxXFkckIB7yFApUnY04VFi6AmC7qEm4N1xAW4Ji8fHJElCTDdY9D33zFeUwAu68sOcnWeEJdnSli0iL/srxy4LUYxj/Wqs1z/d9/xe/JaYmE3UPIPgdNbObDGndiX8Y8qo/17MNTMO0nufuwx+k1Hw7jo8AVYwsWzDBMJJj0Ojxb9bg0AGJO7Hg2OQmc8DAsAIiEmzX4o7lF7aksb11YkAFUAL/M1qB8LDo4aLGpV+3PHY0bgFH4EedJd1LhLD6n5GRpDQeIo8O4tupI5pTkg5hEWG1sGE7/J77WRZ9RLyIGnnYf3gOoykVGKskFgpQIFN1MS7T+dL0JXp0m2bye0JUmP0jX93wtTn1BhxyD3UpzV8aCDXMPJFNUWKmPcHs41u7GVTRIchw76xgEI2GERUE5cTgIkY1nz0=
