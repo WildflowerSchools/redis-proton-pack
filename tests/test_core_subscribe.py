@@ -127,7 +127,7 @@ def test_handle_event_mismatch_topic():
             activity="init",
             ref_id="00",
         )
-        ok = subscriber.handle_event(event, "consumer_group", "consumer_id")
+        ok = subscriber.matches(event)
         assert ok is False
         assert httpretty.has_request() is False
 
@@ -156,7 +156,7 @@ def test_handle_event_mismatch_evt_type():
             activity="init",
             ref_id="00",
         )
-        ok = subscriber.handle_event(event, "consumer_group", "consumer_id")
+        ok = subscriber.matches(event)
         assert ok is False
         assert httpretty.has_request() is False
 
@@ -184,6 +184,6 @@ def test_handle_event_mismatch_activities():
             activity="write",
             ref_id="00",
         )
-        ok = subscriber.handle_event(event, "consumer_group", "consumer_id")
+        ok = subscriber.matches(event)
         assert ok is False
         assert httpretty.has_request() is False
