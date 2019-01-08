@@ -1,12 +1,18 @@
 from enum import Enum
 import json
 from typing import List, Dict
+import time
 from uuid import uuid4
 
 import requests
+from retrying import retry
+from spylogger import get_logger
 
 from .base import BaseManager
 from . import Event
+
+
+logger = get_logger()
 
 
 class Protocol(Enum):
@@ -55,21 +61,29 @@ class Subscriber(object):
     def list_key(self):
         return "pp-subscriptions-{stream}".format(stream=self.stream)
 
-    def handle_event(self, event: Event, consumer_group: str, consumer_id: str) -> bool:
+    def matches(self, event: Event) -> bool:
         # test for topic match
         if self.topics and "*" not in self.topics:
             if event.topic not in self.topics:
+                self.log(action="handle_event_nomatch_topic", event_id=event.event_id, topic=event.topic)
                 return False
 
         # test for evt_types match
         if self.evt_types and "*" not in self.evt_types:
             if event.evt_type not in self.evt_types:
+                self.log(action="handle_event_nomatch_evt_types", event_id=event.event_id)
                 return False
 
         # test for activities match
         if self.activities and "*" not in self.activities:
             if event.activity not in self.activities:
+                self.log(action="handle_event_nomatch_activity", event_id=event.event_id)
                 return False
+        return True
+
+    def handle_event(self, event: Event, consumer_group: str, consumer_id: str) -> bool:
+        if not self.matches(event):
+            return True
 
         # if we got this far then we matched all the criteria
         payload = {
@@ -79,21 +93,44 @@ class Subscriber(object):
             "consumer_id": consumer_id,
             "subscriber_name": self.subscriber_name,
         }
+        self.log(action="handle_event_match", event_id=event.event_id)
 
         if self.protocol == Protocol.HTTP:
-            response = requests.post(self.endpoint, json=payload)
-            if response.status_code == 200:
-                return True
-            else:
-                # TODO - better logging, retry strategies, failure modes
-                print("---- bad response ----")
-                print(response.text)
-                print("----------------------")
+            @retry(stop_max_attempt_number=10, wait_exponential_multiplier=100)
+            def __make_request():
+                response = requests.post(self.endpoint, json=payload)
+                if response.status_code >= 200 and response.status_code < 300:
+                    return True
+                else:
+                    self.log(error=True, action="handle_event_invalid_status", status_code=response.status_code)
+                    raise Error(f"request failed: {response.status_code}")
+            try:
+                return __make_request()
+            except Error as e:
+                self.log(error=True, action="handle_event_failure", event_id=event.event_id)
                 return False
         elif self.protocol == Protocol.GRPC:
-            # TODO
+            # do this because GRPC is not yet supported
+            self.log(error=True, action="handle_event_failure", event_id=event.event_id)
             pass
         return True
+
+    def log(self, error=False, **kwargs):
+        msg = {
+            "message": "Subscriber",
+            "stream": self.stream,
+            "subscriber_name": self.subscriber_name,
+            "topics": self.topics,
+            "activities": self.activities,
+            "protocol": self.protocol.value,
+            "endpoint": self.endpoint,
+            "evt_types": self.evt_types,
+        }
+        msg.update(kwargs)
+        if error:
+            logger.error(msg)
+        else:
+            logger.debug(msg)
 
     @classmethod
     def from_dict(cls, obj) -> 'Subscriber':

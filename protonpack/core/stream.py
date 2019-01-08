@@ -10,8 +10,14 @@ from .utils import decode, now
 def fix_keys(mapping):
     result = dict()
     for k in mapping.keys():
-        result[decode(k)] = mapping[k]
+        result[decode(k)] = fix_value(mapping[k])
     return result
+
+
+def fix_value(value):
+    if value and hasattr(value, "decode"):
+        return value.decode("utf8")
+    return value
 
 
 class Event(object):
