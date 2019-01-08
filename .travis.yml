@@ -27,6 +27,7 @@ addons:
     - redis-server
 
 install:
+- env
 - pip install -r requirements-test.txt
 
 script:
