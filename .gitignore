@@ -3,3 +3,4 @@
 __pycache__
 
 redis_proton_pack\.egg-info/
+worker.sh

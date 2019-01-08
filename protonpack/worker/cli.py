@@ -1,8 +1,12 @@
 import time
 
 import click
+from spylogger import get_logger
 
 from protonpack.worker import GhostBuster
+
+
+logger = get_logger()
 
 
 @click.group()
@@ -17,6 +21,12 @@ def worker(ctx):
 @click.option('-i', '--consumerid', required=True, help="consumer id")
 @click.pass_context
 def startup(ctx, stream, consumer, consumerid):
+    logger.info({
+        "message": f"starting up GhostBuster",
+        "consumer": consumer,
+        "consumerid": consumerid,
+        "stream": stream,
+    })
     gb = GhostBuster(stream, consumer, consumerid)
     while True:
         gb.do_poll()

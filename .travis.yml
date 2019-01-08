@@ -1,9 +1,10 @@
 language: python
 python:
   - "3.6"
+  - "3.7"
 
-sudo: required
-dist: trusty
+sudo: yes
+dist: xenial
 
 env:
   global:
@@ -13,11 +14,11 @@ env:
 
 addons:
   apt:
+    sources:
+      - ppa:chris-lea/redis-server
     packages:
-      - redis-server
-
-services:
-- redis-server
+    - redis-tools
+    - redis-server
 
 install:
 - pip install -r requirements-test.txt

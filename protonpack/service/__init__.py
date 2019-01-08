@@ -1,20 +1,20 @@
-import logging
-
 from flask import Flask, request, make_response
+from spylogger import get_logger
 
-from protonpack.core import ProtonPack
+from protonpack.core import ProtonPack, Event
 from protonpack.core.subscribe import SubscriberManager, Subscriber
 from protonpack.core.utils import json_dumps
 
 
 app = Flask(__name__)
+app.logger = get_logger()
 
 
 @app.route("/", methods=['GET', 'POST'])
 def root_handler():
     if request.method == "POST":
         data = request.get_json(force=True)
-        logging.info(json_dumps(data))
+        app.logger.info(json_dumps(data))
     return make_response(json_dumps({"status": "ok"}), 200)
 
 
@@ -24,10 +24,18 @@ def get_streams():
     return make_response(json_dumps({"status": "ok", "streams": list(streams)}), 200)
 
 
-@app.route("/streams/<stream>", methods=['GET'])
+@app.route("/streams/<stream>", methods=['GET', 'POST'])
 def get_stream_info(stream):
-    info = ProtonPack.stream_info(stream)
-    return make_response(json_dumps({"status": "ok", "stream": stream, "info": info}), 200)
+    if request.method == "GET":
+        info = ProtonPack.stream_info(stream)
+        return make_response(json_dumps({"status": "ok", "stream": stream, "info": info}), 200)
+    elif request.method == "POST":
+        raw = request.get_json(force=True)
+        event = Event.from_dict(raw)
+        evt_id = ProtonPack.send_event(stream, event)
+        raw["event_id"] = evt_id
+        app.logger.debug({"action": "event_posted", "event": raw})
+        return make_response(json_dumps({"status": "ok", "stream": stream, "event": evt_id}), 200)
 
 
 @app.route("/streams/<stream>/groups", methods=['GET'])
@@ -39,7 +47,6 @@ def get_stream_consumer_groups(stream):
 @app.route("/streams/<stream>/groups", methods=['POST'])
 def put_stream_consumer_group(stream):
     data = request.get_json(force=True)
-    logging.info(json_dumps(data))
     group_name = data.get("group_name")
     group = ProtonPack.create_consumer_group(stream, group_name)
     return make_response(json_dumps({"status": "ok", "stream": stream, "group_name": group_name, "created": group}), 200)
@@ -54,7 +61,6 @@ def get_stream_subscribers(stream):
 @app.route("/streams/<stream>/subscribers", methods=['POST'])
 def put_stream_subscriber(stream):
     data = request.get_json(force=True)
-    logging.info(json_dumps(data))
     subscriber = Subscriber.from_dict(data)
     created = SubscriberManager.put_subscriber(subscriber)
     return make_response(json_dumps({"status": "ok", "stream": stream, "subscriber": subscriber.subscriber_name, "created": created}), 200)

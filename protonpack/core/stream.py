@@ -182,4 +182,4 @@ class ProtonPack(BaseManager):
         streams[stream] = ">"
         results = client.xreadgroup(groupname, consumername, streams, count=count, block=block)
         events = Event.parse_group_read(results)
-        return events[stream]
+        return events.get(stream, [])
