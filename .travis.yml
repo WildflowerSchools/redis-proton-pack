@@ -9,7 +9,7 @@ matrix:
 
 branches:
   exclude:
-    # skip version tagged builds
+    # skip version tagged builds - seems to not work though
     - /^v\d+.*$/
 
 sudo: yes

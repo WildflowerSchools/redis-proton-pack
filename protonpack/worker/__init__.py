@@ -68,7 +68,7 @@ class GhostBuster(BaseManager):
         return client.xadd(f"janitorial::{self.stream_name}", {"subscriber": subscriber, "event": json_dumps(evt)})
 
     def handle_event(self, event) -> bool:
-        """l
+        """
         loads list of subscribers, which should get cached for a short time - TODO ttl cache of subscribers list
         loops over the subscribers, which each have auto-retry
         tracks the status
