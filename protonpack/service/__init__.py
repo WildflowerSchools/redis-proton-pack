@@ -49,6 +49,7 @@ def get_stream_info(stream):
                 app.logger.debug({"action": "event_posted", "event": evt})
             return make_response(json_dumps({"status": "ok", "stream": stream, "events": evt_ids}), 200)
 
+
 @app.route("/streams/<stream>/groups", methods=['GET'])
 def get_stream_consumer_groups(stream):
     groups = ProtonPack.list_consumer_groups(stream)
