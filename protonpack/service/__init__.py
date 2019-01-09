@@ -1,3 +1,5 @@
+import collections
+
 from flask import Flask, request, make_response
 from spylogger import get_logger
 
@@ -31,11 +33,21 @@ def get_stream_info(stream):
         return make_response(json_dumps({"status": "ok", "stream": stream, "info": info}), 200)
     elif request.method == "POST":
         raw = request.get_json(force=True)
-        event = Event.from_dict(raw)
-        evt_id = ProtonPack.send_event(stream, event)
-        raw["event_id"] = evt_id
-        app.logger.debug({"action": "event_posted", "event": raw})
-        return make_response(json_dumps({"status": "ok", "stream": stream, "event": evt_id}), 200)
+        if isinstance(raw, collections.Mapping):
+            event = Event.from_dict(raw)
+            evt_id = ProtonPack.send_event(stream, event)
+            raw["event_id"] = evt_id
+            app.logger.debug({"action": "event_posted", "event": raw})
+            return make_response(json_dumps({"status": "ok", "stream": stream, "events": [evt_id]}), 200)
+        else:
+            evt_ids = []
+            for evt in raw:
+                event = Event.from_dict(evt)
+                evt_id = ProtonPack.send_event(stream, event)
+                evt["event_id"] = evt_id
+                evt_ids.append(evt_id)
+                app.logger.debug({"action": "event_posted", "event": evt})
+            return make_response(json_dumps({"status": "ok", "stream": stream, "events": evt_ids}), 200)
 
 
 @app.route("/streams/<stream>/groups", methods=['GET'])
