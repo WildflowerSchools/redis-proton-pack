@@ -1,5 +1,5 @@
 requests==2.20.1
-redis==3.0.1
+redis==4.4.4
 Jinja2==2.10
 pyyaml>=4.2b1
 click==6.7
