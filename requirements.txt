@@ -1,4 +1,4 @@
-requests==2.20.1
+requests==2.31.0
 redis==3.0.1
 Jinja2==2.10
 pyyaml>=4.2b1
